@@ -63,7 +63,7 @@
   */
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
-
+static int8_t CUSTOM_HID_OutDulBuf_FS (uint8_t lenght,uint8_t* DulBuf);
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -116,7 +116,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 };
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
-
+uint8_t sendbuffer[64];
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -154,7 +154,8 @@ USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
   CUSTOM_HID_ReportDesc_FS,
   CUSTOM_HID_Init_FS,
   CUSTOM_HID_DeInit_FS,
-  CUSTOM_HID_OutEvent_FS
+  CUSTOM_HID_OutEvent_FS,
+  CUSTOM_HID_OutDulBuf_FS
 };
 
 /** @defgroup USBD_CUSTOM_HID_Private_Functions USBD_CUSTOM_HID_Private_Functions
@@ -215,7 +216,26 @@ static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len)
 /* USER CODE END 7 */
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+static int8_t CUSTOM_HID_OutDulBuf_FS (uint8_t lenght,uint8_t* DulBuf)
+{
+	uint8_t dat0=DulBuf[0];
+	if(dat0==4)
+	{
+		uint8_t dat1=DulBuf[1];
+		uint8_t dat2=DulBuf[2];
+		uint8_t dat3=dat1+dat2;
 
+		for(int i=0;i<64;i++)
+		{
+			sendbuffer[i]=0;
+		}
+		sendbuffer[0]=dat1;
+		sendbuffer[1]=dat2;
+		sendbuffer[2]=dat3;
+		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,sendbuffer,64);
+	}
+	return (USBD_OK);
+}
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 /**
   * @}
